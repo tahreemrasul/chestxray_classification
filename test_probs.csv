@@ -1,0 +1,6 @@
+,Path,LabelMulti,Atelectasis,Cardiomegaly,Consolidation,PleuralEffusion
+0,CheXpert-v1.0-small/valid/patient64541/study1/view1_frontal.jpg,"[0, 1, 0, 0]",0.38241526,0.43166694,0.1729687,0.14058203
+1,CheXpert-v1.0-small/valid/patient64545/study1/view1_frontal.jpg,"[1, 0, 0, 1]",0.4590683,0.11322742,0.32196456,0.6605982
+2,CheXpert-v1.0-small/valid/patient64546/study1/view1_frontal.jpg,"[1, 1, 0, 0]",0.47222325,0.13753648,0.17582436,0.53144616
+3,CheXpert-v1.0-small/valid/patient64548/study1/view1_frontal.jpg,"[1, 1, 1, 1]",0.52091086,0.41281593,0.39588886,0.61975336
+4,CheXpert-v1.0-small/valid/patient64549/study1/view1_frontal.jpg,"[0, 1, 0, 0]",0.07284013,0.972585,0.05079598,0.0924585
