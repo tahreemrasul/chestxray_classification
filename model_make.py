@@ -6,7 +6,7 @@ class DenseNet121(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
 
-        self.model = torchvision.models.DenseNet(weights='DenseNet121_Weights.DEFAULT')
+        self.model = torchvision.models.densenet121(weights='DenseNet121_Weights.DEFAULT')
 
         # Get the input dimension of last layer
         model_output_features = self.model.classifier.in_features

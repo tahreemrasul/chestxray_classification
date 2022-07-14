@@ -125,4 +125,5 @@ def evaluating(epoch, model, val_loader, device, loss_criteria, mb):
     del images, labels, loss
     if torch.cuda.is_available(): torch.cuda.empty_cache()
     # return validation loss, and metric score
-    return val_loss / len(val_loader), np.array(ut.multi_label_auroc(out_gt, out_pred)).mean()
+    return val_loss / len(val_loader), np.array(ut.multi_label_auroc(out_gt, out_pred)).mean(), \
+           np.array(ut.multi_label_accuracy(out_gt, out_pred)).mean()

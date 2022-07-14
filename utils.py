@@ -3,10 +3,10 @@ import os
 import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, accuracy_score
 from PIL import Image
-import args
-
+import args as args
+from sklearn.model_selection import train_test_split
 
 def labelone(row):
     labelone = []
@@ -51,24 +51,49 @@ def select_cols(df, cols):
     return df
 
 
+def drop_all_zeros(row):
+    if row[-1] == [0, 0, 0, 0]:
+        return row
+    
+
+def select_non_zeros(df):
+    rows_to_drop = df.apply(lambda x: drop_all_zeros(x), axis=1)
+    df = df.drop(rows_to_drop.dropna().index).reset_index(drop=True)
+    return df
+
+
 def dataloader():
     train_df = pd.read_csv(args.TRAIN_PATH)
-    val_df = pd.read_csv(args.VAL_PATH)
+    test_df = pd.read_csv(args.VAL_PATH)
+    
+    train_df = train_df[:80000]
 
-    train_df = train_df[:10000]
+    train_df, val_df = train_test_split(train_df, test_size=0.2, random_state=42)
+
+    train_df.reset_index(drop=True, inplace=True)
+    val_df.reset_index(drop=True, inplace=True)
+
+    #train_df = train_df[:2000]
+
+    train_df = select_non_zeros(train_df)
+    val_df = select_non_zeros(val_df)
+    test_df = select_non_zeros(test_df)
 
     cols = ['Path'] + args.LABELS_TO_PREDICT
     train_df = select_cols(train_df, cols)
     val_df = select_cols(val_df, cols)
+    test_df = select_cols(test_df, cols)
 
     train_df = get_labels(train_df)
     val_df = get_labels(val_df)
+    test_df = get_labels(test_df)
 
     cols = ['Path'] + args.LABELS_ENCODING
     train_df = select_cols(train_df, cols)
     val_df = select_cols(val_df, cols)
+    test_df = select_cols(test_df, cols)
 
-    return train_df, val_df
+    return train_df, val_df, test_df
 
 
 class ChestXrayDataset(Dataset):
@@ -117,15 +142,12 @@ class ChestXrayDataset(Dataset):
             self.image_paths.append(image_path)
             if self.mapping == 'u-ones':
                 labels = row.LabelOne
-            else if self.mapping == 'u-zero':
+            elif self.mapping == 'u-zero':
                 labels = row.LabelZero
-            else if self.mapping == 'u-multi':
+            elif self.mapping == 'u-multi':
                 labels = row.LabelMulti
             self.image_labels.append(labels)
-                
-                
-            
-      
+
     def __len__(self):
         return len(self.image_paths)
 
@@ -168,3 +190,27 @@ def multi_label_auroc(y_gt, y_pred):
     for i in range(gt_np.shape[1]):
         auroc.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
     return auroc
+
+
+def multi_label_accuracy(y_gt, y_pred):
+    """ Calculate AUROC for each class
+
+    Parameters
+    ----------
+    y_gt: torch.Tensor
+        groundtruth
+    y_pred: torch.Tensor
+        prediction
+
+    Returns
+    -------
+    list
+        F1 of each class
+    """
+    acc = []
+    gt_np = y_gt.to("cpu").numpy()
+    pred_np = y_pred.to("cpu").numpy()
+    assert gt_np.shape == pred_np.shape, "y_gt and y_pred should have the same size"
+    for i in range(gt_np.shape[1]):
+        acc.append(accuracy_score(gt_np[:, i], pred_np.round()[:, i]))
+    return acc
